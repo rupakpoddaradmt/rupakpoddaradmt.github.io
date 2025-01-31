@@ -1,1 +1,13 @@
-[![rupakpoddaradmt.github.io](https://img.shields.io/badge/rupakpoddaradmt.github.io-Click%20Here-blue)](https://rupakpoddaradmt.github.io/)
+<a href="https://rupakpoddaradmt.github.io/">
+  <img src="https://img.shields.io/badge/rupakpoddaradmt.github.io-FFBF00?style=for-the-badge&logoColor=black" />
+</a>  
+<br>
+
+<a href="https://rupakpoddaradmt.github.io/AurexPrivacyPolicy/">
+  <img src="https://img.shields.io/badge/Aurex%20Privacy%20Policy-FFBF00?style=for-the-badge&logoColor=black" />
+</a>  
+<br>
+
+<a href="https://rupakpoddaradmt.github.io/AurexSupport/">
+  <img src="https://img.shields.io/badge/Aurex%20Support-FFBF00?style=for-the-badge&logoColor=black" />
+</a>  
