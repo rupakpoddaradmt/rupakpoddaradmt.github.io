@@ -3,60 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bello</title>
+    <title>Bello Standard Time</title>
     <style>
-        body {
-            background-color: black;
-            color: #FFBF00; /* Amber color */
-            font-family: 'Arial', sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .title-container {
+            position: relative;
+            z-index: 2;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
         }
 
         h1 {
-            font-size: 5rem;
-            letter-spacing: 5px;
-            text-align: center;
-            animation: fadeIn 2s ease-out;
+            font-size: 10vw;
+            letter-spacing: 10px;
+            color: #FFBF00;
+            transition: all 0.25s ease;
+            position: relative;
+            mix-blend-mode: screen;
         }
 
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.5);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .bello {
-            display: inline-block;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .bello:hover {
-            transform: scale(1.2);
-        }
-
-        .bello:active {
-            transform: scale(1.1);
+        .time-display {
+            position: absolute;
+            font-size: 5vw;
+            color: #FFBF00;
+            pointer-events: none;
+            font-family: 'Courier New', monospace;
+            mix-blend-mode: difference;
+            transition: all 0.5s ease;
         }
     </style>
 </head>
 <body>
-    <h1 class="bello" onclick="greet()">Bello</h1>
+    <div class="title-container">
+        <h1 class="bello">BELLO</h1>
+        <div class="time-display"></div>
+    </div>
 
     <script>
-        function greet() {
-            alert("Hello, Bello!");
+        const title = document.querySelector('h1');
+        const timeDisplay = document.querySelector('.time-display');
+        let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+        const smoothness = 0.1;
+
+        function animate() {
+            currentX += (targetX - currentX) * smoothness;
+            currentY += (targetY - currentY) * smoothness;
+            
+            title.style.transform = `translate(${currentX}px, ${currentY}px)`;
+            timeDisplay.style.transform = `translate(${currentX * 0.5}px, ${currentY * 0.5 + 80}px)`;
+            
+            requestAnimationFrame(animate);
         }
+        animate();
+
+        document.addEventListener('mousemove', (e) => {
+            const { clientX, clientY } = e;
+            const rect = title.getBoundingClientRect();
+            const titleCenterX = rect.left + rect.width / 2;
+            const titleCenterY = rect.top + rect.height / 2;
+            
+            const deltaX = clientX - titleCenterX;
+            const deltaY = clientY - titleCenterY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            const maxDistance = 400;
+            const repelStrength = 150;
+            
+            if (distance < maxDistance) {
+                const force = (maxDistance - distance)/maxDistance * repelStrength;
+                const angle = Math.atan2(deltaY, deltaX);
+                
+                targetX = Math.cos(angle) * force;
+                targetY = Math.sin(angle) * force;
+            } else {
+                targetX = 0;
+                targetY = 0;
+            }
+        });
+
+        // Time display logic
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            timeDisplay.textContent = timeString;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Reset position when mouse leaves window
+        document.addEventListener('mouseleave', () => {
+            targetX = 0;
+            targetY = 0;
+        });
     </script>
 </body>
 </html>
