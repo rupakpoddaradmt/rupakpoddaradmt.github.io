@@ -1,5 +1,5 @@
 <a href="https://rupakpoddaradmt.github.io/">
-  <img src="https://img.shields.io/badge/rupakpoddaradmt.github.io-FFBF00?style=for-the-badge&logoColor=black" />
+  <img src="https://img.shields.io/badge/Flappy%20Ferreux-FFBF00?style=for-the-badge&logoColor=black" />
 </a>  
 <br>
 
