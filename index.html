@@ -1,119 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bello Standard Time</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #000;
-            font-family: 'Arial', sans-serif;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .title-container {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        h1 {
-            font-size: 10vw;
-            letter-spacing: 10px;
-            color: #FFBF00;
-            transition: all 0.25s ease;
-            position: relative;
-            mix-blend-mode: screen;
-        }
-
-        .time-display {
-            position: absolute;
-            font-size: 5vw;
-            color: #FFBF00;
-            pointer-events: none;
-            font-family: 'Courier New', monospace;
-            mix-blend-mode: difference;
-            transition: all 0.5s ease;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Ferreux</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #FFFFFF;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      touch-action: manipulation;
+    }
+    canvas {
+      display: block;
+      background-color: #FFFFFF;
+    }
+  </style>
 </head>
 <body>
-    <div class="title-container">
-        <h1 class="bello">BELLO</h1>
-        <div class="time-display"></div>
-    </div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-    <script>
-        const title = document.querySelector('h1');
-        const timeDisplay = document.querySelector('.time-display');
-        let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
-        const smoothness = 0.1;
+    // Set canvas to full screen
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
-        function animate() {
-            currentX += (targetX - currentX) * smoothness;
-            currentY += (targetY - currentY) * smoothness;
-            
-            title.style.transform = `translate(${currentX}px, ${currentY}px)`;
-            timeDisplay.style.transform = `translate(${currentX * 0.5}px, ${currentY * 0.5 + 80}px)`;
-            
-            requestAnimationFrame(animate);
-        }
-        animate();
+    // Load images
+    const bgImg = new Image();
+    bgImg.src = 'https://rupakpoddaradmt.github.io/assets/bg.png';
 
-        document.addEventListener('mousemove', (e) => {
-            const { clientX, clientY } = e;
-            const rect = title.getBoundingClientRect();
-            const titleCenterX = rect.left + rect.width / 2;
-            const titleCenterY = rect.top + rect.height / 2;
-            
-            const deltaX = clientX - titleCenterX;
-            const deltaY = clientY - titleCenterY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            
-            const maxDistance = 400;
-            const repelStrength = 150;
-            
-            if (distance < maxDistance) {
-                const force = (maxDistance - distance)/maxDistance * repelStrength;
-                const angle = Math.atan2(deltaY, deltaX);
-                
-                targetX = Math.cos(angle) * force;
-                targetY = Math.sin(angle) * force;
-            } else {
-                targetX = 0;
-                targetY = 0;
-            }
+    const birdImg = new Image();
+    birdImg.src = 'https://rupakpoddaradmt.github.io/assets/bird.png';
+
+    const topPillarImg = new Image();
+    topPillarImg.src = 'https://rupakpoddaradmt.github.io/assets/top.png';
+
+    const bottomPillarImg = new Image();
+    bottomPillarImg.src = 'https://rupakpoddaradmt.github.io/assets/bottom.png';
+
+    // Game variables
+    let bird = {
+      x: 50,
+      y: canvas.height / 2,
+      width: 280,
+      height: 90,
+      gravity: 0.35,
+      lift: -9,
+      velocity: 0,
+      collisionWidth: 120,
+      collisionHeight: 50
+    };
+
+    let pillars = [];
+    let frame = 0;
+    let gameOver = false;
+    let score = 0;
+
+    const pillarGap = 200;
+    const pillarSpacing = 500;
+    const pillarSpeed = 3;
+    const pillarWidth = 250;
+
+    // Function to draw the background image with "cover" behavior
+    function drawBackground() {
+      if (!bgImg.complete) return; // Ensure the image is loaded
+
+      const canvasAspectRatio = canvas.width / canvas.height;
+      const imgAspectRatio = bgImg.width / bgImg.height;
+
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (canvasAspectRatio > imgAspectRatio) {
+        // Canvas is wider than the image
+        drawWidth = canvas.width;
+        drawHeight = drawWidth / imgAspectRatio;
+        offsetX = 0;
+        offsetY = (canvas.height - drawHeight) / 2;
+      } else {
+        // Canvas is taller than the image
+        drawHeight = canvas.height;
+        drawWidth = drawHeight * imgAspectRatio;
+        offsetX = (canvas.width - drawWidth) / 2;
+        offsetY = 0;
+      }
+
+      // Draw the image to cover the canvas, cropping if necessary
+      ctx.drawImage(
+        bgImg,
+        0, 0, bgImg.width, bgImg.height, // Source rectangle (entire image)
+        offsetX, offsetY, drawWidth, drawHeight // Destination rectangle (scaled to cover)
+      );
+    }
+
+    function drawBird() {
+      ctx.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height);
+    }
+
+    function drawPillars() {
+      pillars.forEach(pillar => {
+        const topHeight = pillar.topHeight * 0.8;
+        ctx.drawImage(
+          topPillarImg,
+          0, topPillarImg.height - topHeight,
+          topPillarImg.width, topHeight,
+          pillar.x, 0,
+          pillarWidth, topHeight
+        );
+
+        const bottomHeight = pillar.bottomHeight * 0.8;
+        ctx.drawImage(
+          bottomPillarImg,
+          0, 0,
+          bottomPillarImg.width, bottomHeight,
+          pillar.x, canvas.height - bottomHeight,
+          pillarWidth, bottomHeight
+        );
+      });
+    }
+
+    // Collision detection remains unchanged
+    function checkCollision(pillar) {
+      const birdBox = {
+        x: bird.x + (bird.width - bird.collisionWidth)/2,
+        y: bird.y + (bird.height - bird.collisionHeight)/2,
+        width: bird.collisionWidth,
+        height: bird.collisionHeight
+      };
+
+      const topHeight = pillar.topHeight * 0.8;
+      const bottomHeight = pillar.bottomHeight * 0.8;
+
+      const topBox = {
+        x: pillar.x + 5,
+        y: 5,
+        width: pillarWidth - 10,
+        height: topHeight - 10
+      };
+
+      const bottomBox = {
+        x: pillar.x + 5,
+        y: canvas.height - bottomHeight + 5,
+        width: pillarWidth - 10,
+        height: bottomHeight - 10
+      };
+
+      return (
+        (birdBox.x < topBox.x + topBox.width &&
+         birdBox.x + birdBox.width > topBox.x &&
+         birdBox.y < topBox.y + topBox.height &&
+         birdBox.y + birdBox.height > topBox.y) ||
+        (birdBox.x < bottomBox.x + bottomBox.width &&
+         birdBox.x + birdBox.width > bottomBox.x &&
+         birdBox.y < bottomBox.y + bottomBox.height &&
+         birdBox.y + birdBox.height > bottomBox.y)
+      );
+    }
+
+    function updateBird() {
+      bird.velocity += bird.gravity;
+      bird.y += bird.velocity;
+
+      if (bird.y + bird.height > canvas.height || bird.y < 0) {
+        gameOver = true;
+      }
+    }
+
+    function updatePillars() {
+      if (pillars.length === 0 || 
+          pillars[pillars.length-1].x < canvas.width - pillarSpacing) {
+        const gapPosition = Math.random() * (canvas.height - pillarGap - 100) + 50;
+        
+        pillars.push({
+          x: canvas.width,
+          topHeight: gapPosition,
+          bottomHeight: canvas.height - gapPosition - pillarGap
         });
+      }
 
-        // Time display logic
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            timeDisplay.textContent = timeString;
+      pillars.forEach((pillar, index) => {
+        pillar.x -= pillarSpeed;
+
+        if (checkCollision(pillar)) {
+          gameOver = true;
         }
 
-        setInterval(updateTime, 1000);
-        updateTime();
+        if (pillar.x + pillarWidth < bird.x && !pillar.passed) {
+          score++;
+          pillar.passed = true;
+        }
 
-        // Reset position when mouse leaves window
-        document.addEventListener('mouseleave', () => {
-            targetX = 0;
-            targetY = 0;
-        });
-    </script>
+        if (pillar.x + pillarWidth < 0) {
+          pillars.splice(index, 1);
+        }
+      });
+    }
+
+    function drawScore() {
+      ctx.fillStyle = '#000';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Score: ${score}`, 20, 40);
+    }
+
+    function resetGame() {
+      bird.y = canvas.height / 2;
+      bird.velocity = 0;
+      pillars = [];
+      score = 0;
+      gameOver = false;
+      frame = 0;
+    }
+
+    function gameLoop() {
+      if (gameOver) {
+        ctx.fillStyle = '#000';
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Game Over! Tap to restart', canvas.width/2, canvas.height/2);
+        return;
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw background with "cover" behavior
+      drawBackground();
+
+      updateBird();
+      updatePillars();
+      drawPillars();
+      drawBird();
+      drawScore();
+
+      frame++;
+      requestAnimationFrame(gameLoop);
+    }
+
+    function handleInput(e) {
+      e.preventDefault();
+      if (gameOver) {
+        resetGame();
+        gameLoop();
+      } else {
+        bird.velocity = bird.lift;
+      }
+    }
+
+    canvas.addEventListener('click', handleInput);
+    canvas.addEventListener('touchstart', handleInput);
+
+    gameLoop();
+  </script>
 </body>
 </html>
