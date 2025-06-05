@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anthias</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Arial Rounded MT Bold', sans-serif;
+      color: white;
+    }
+
+    .video-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -2;
+      opacity: 0;
+      transition: opacity 2s ease-in-out;
+      pointer-events: none;
+    }
+
+    .video-bg.active {
+      opacity: 1;
+      z-index: -1;
+    }
+
+    .clock {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px 25px;
+      border-radius: 15px;
+    }
+
+    .clock-time {
+      font-size: 4.5rem;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .clock-date {
+      font-size: 1.8rem;
+      margin-top: 10px;
+    }
+
+    .weather {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Videos (NO LOOP) -->
+  <video id="video1" class="video-bg active" autoplay muted playsinline>
+    <source src="video 1.mp4" type="video/mp4" />
+  </video>
+
+  <video id="video2" class="video-bg" autoplay muted playsinline>
+    <source src="video 2.mp4" type="video/mp4" />
+  </video>
+
+  <!-- Clock -->
+  <div class="clock">
+    <div class="clock-time" id="clock-time">Loading...</div>
+    <div class="clock-date" id="clock-date"></div>
+  </div>
+
+  <!-- Weather -->
+  <div class="weather">
+    <a class="weatherwidget-io"
+       href="https://forecast7.com/en/41d01n73d95/northvale/?unit=us"
+       data-font="Arial Rounded MT Bold"
+       data-icons="Climacons Animated"
+       data-days="5"
+       data-theme="pure">
+      Northvale, NJ, USA
+    </a>
+  </div>
+
+  <!-- Clock JS -->
+  <script>
+    function updateClock() {
+      const now = new Date();
+
+      let hours = now.toLocaleString('en-US', { hour: 'numeric', hour12: true, timeZone: 'America/New_York' });
+      let minutes = now.toLocaleString('en-US', { minute: '2-digit', timeZone: 'America/New_York' });
+
+      hours = hours.replace(/ AM| PM/, '');
+      document.getElementById('clock-time').textContent = `${hours}:${minutes}`;
+
+      const dateOptions = {
+        timeZone: 'America/New_York',
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      };
+
+      const dateFormatter = new Intl.DateTimeFormat('en-US', dateOptions);
+      document.getElementById('clock-date').textContent = dateFormatter.format(now);
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+
+  <!-- Video Switch JS (UPDATED) -->
+  <script>
+    const video1 = document.getElementById('video1');
+    const video2 = document.getElementById('video2');
+
+    let currentVideo = video1;
+    let nextVideo = video2;
+
+    function setupVideoSwitch(video) {
+      function checkTime() {
+        // Ensure duration is loaded and valid
+        if (video.duration && !isNaN(video.duration)) {
+          const switchTime = Math.max(video.duration - 2, 0); // 2s before end
+          if (video.currentTime >= switchTime) {
+            video.removeEventListener('timeupdate', checkTime);
+            switchVideo();
+          }
+        }
+      }
+      video.addEventListener('timeupdate', checkTime);
+    }
+
+    function switchVideo() {
+      currentVideo.classList.remove('active');
+      nextVideo.classList.add('active');
+      nextVideo.currentTime = 0; // Reset to start
+      nextVideo.play();
+
+      // Swap video roles
+      const temp = currentVideo;
+      currentVideo = nextVideo;
+      nextVideo = temp;
+
+      // Setup switch for the new current video
+      setupVideoSwitch(currentVideo);
+    }
+
+    // Initialize for the first video
+    setupVideoSwitch(video1);
+
+    // Fallback for autoplay restrictions
+    document.addEventListener('click', () => {
+      video1.play().catch(() => {});
+      video2.play().catch(() => {});
+    });
+  </script>
+
+  <!-- Weather Widget -->
+  <script>
+    !function(d,s,id){
+      var js,fjs=d.getElementsByTagName(s)[0];
+      if(!d.getElementById(id)){
+        js=d.createElement(s);
+        js.id=id;
+        js.src='https://weatherwidget.io/js/widget.min.js';
+        fjs.parentNode.insertBefore(js,fjs);
+      }
+    }(document,'script','weatherwidget-io-js');
+  </script>
+
+</body>
+</html>
