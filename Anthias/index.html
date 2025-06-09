@@ -3,181 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anthias</title>
+  <title>Time & Weather</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow: hidden;
-      font-family: 'Arial Rounded MT Bold', sans-serif;
-      color: white;
-    }
-
-    .video-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: -2;
-      opacity: 0;
-      transition: opacity 2s ease-in-out;
-      pointer-events: none;
-    }
-
-    .video-bg.active {
-      opacity: 1;
-      z-index: -1;
-    }
-
-    .clock {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 20px 25px;
-      border-radius: 15px;
-    }
-
-    .clock-time {
-      font-size: 4.5rem;
-      line-height: 1;
+      background: #ffffff;
+      font-family: 'Inter', sans-serif;
+      color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       text-align: center;
     }
 
-    .clock-date {
-      font-size: 1.8rem;
-      margin-top: 10px;
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      max-width: 100%;
+      animation: fadeIn 1.2s ease-out;
+    }
+
+    .time {
+      font-size: 10vw;
+      font-weight: 700;
+      margin-bottom: -25px;
+      animation: slideDown 0.8s ease-out;
+    }
+
+    .date {
+      font-size: 2.5vw;
+      margin-bottom: 50px;
+      animation: fadeIn 1.5s ease-out;
     }
 
     .weather {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      text-align: center;
-      background: rgba(255, 255, 255, 0.8);
+      width: 750px;
+      max-width: 100%;
+      animation: fadeIn 2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .time { font-size: 16vw; }
+      .date { font-size: 5vw; }
     }
   </style>
 </head>
 <body>
-
-  <!-- Background Videos (NO LOOP) -->
-  <video id="video1" class="video-bg active" autoplay muted playsinline>
-    <source src="/Anthias/Video1.mp4" type="video/mp4" />
-  </video>
-
-  <video id="video2" class="video-bg" autoplay muted playsinline>
-    <source src="/Anthias/Video2.mp4" type="video/mp4" />
-  </video>
-
-  <!-- Clock -->
-  <div class="clock">
-    <div class="clock-time" id="clock-time">Loading...</div>
-    <div class="clock-date" id="clock-date"></div>
+  <div class="container">
+    <div class="time" id="time">--:--</div>
+    <div class="date" id="date">Loading date...</div>
+    <div class="weather">
+      <div class="tomorrow"
+           data-location-id="123169"
+           data-language="EN"
+           data-unit-system="IMPERIAL"
+           data-skin="light"
+           data-widget-type="upcoming"
+           style="padding-bottom:22px;position:relative;">
+        <a href="https://weather.tomorrow.io/"
+           rel="nofollow noopener noreferrer"
+           target="_blank"
+           style="position: absolute; bottom: 0; transform: translateX(-50%); left: 50%;">
+          <img
+            alt="Powered by Tomorrow.io"
+            src="https://weather-website-client.tomorrow.io/img/powered-by.svg"
+            width="250"
+            height="18" />
+        </a>
+      </div>
+    </div>
   </div>
 
-  <!-- Weather -->
-  <div class="weather">
-    <a class="weatherwidget-io"
-       href="https://forecast7.com/en/41d01n73d95/northvale/?unit=us"
-       data-font="Arial Rounded MT Bold"
-       data-icons="Climacons Animated"
-       data-days="5"
-       data-theme="pure">
-      Northvale, NJ, USA
-    </a>
-  </div>
-
-  <!-- Clock JS -->
+  <!-- Tomorrow.io SDK -->
   <script>
-    function updateClock() {
+    (function(d, s, id) {
+      if (d.getElementById(id)) {
+        if (window.__TOMORROW__) {
+          window.__TOMORROW__.renderWidget();
+        }
+        return;
+      }
+      const fjs = d.getElementsByTagName(s)[0];
+      const js = d.createElement(s);
+      js.id = id;
+      js.src = "https://www.tomorrow.io/v1/widget/sdk/sdk.bundle.min.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    })(document, 'script', 'tomorrow-sdk');
+  </script>
+
+  <!-- Time and Date Script -->
+  <script>
+    function updateTime() {
       const now = new Date();
 
-      let options = { hour: 'numeric', minute: 'numeric', hour12: true, timeZone: 'America/New_York' };
-      let timeParts = new Intl.DateTimeFormat('en-US', options).formatToParts(now);
+      // Time (Eastern, 12-hour format)
+      const timeOptions = {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true,
+      };
+      let timeStr = new Intl.DateTimeFormat('en-US', timeOptions).format(now);
+      timeStr = timeStr.replace(/ AM| PM/, ''); // Remove AM/PM
 
-      let hour = timeParts.find(p => p.type === 'hour').value.padStart(2, '0');
-      let minute = timeParts.find(p => p.type === 'minute').value.padStart(2, '0');
+      document.getElementById('time').textContent = timeStr;
 
-      document.getElementById('clock-time').textContent = `${hour}:${minute}`;
-
+      // Date (without year)
       const dateOptions = {
         timeZone: 'America/New_York',
         weekday: 'long',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
       };
-
-      const dateFormatter = new Intl.DateTimeFormat('en-US', dateOptions);
-      document.getElementById('clock-date').textContent = dateFormatter.format(now);
+      const dateStr = new Intl.DateTimeFormat('en-US', dateOptions).format(now);
+      document.getElementById('date').textContent = dateStr;
     }
 
-    setInterval(updateClock, 1000);
-    updateClock();
+    updateTime();
+    setInterval(updateTime, 60000);
   </script>
-
-  <!-- Video Switch JS (UPDATED) -->
-  <script>
-    const video1 = document.getElementById('video1');
-    const video2 = document.getElementById('video2');
-
-    let currentVideo = video1;
-    let nextVideo = video2;
-
-    function setupVideoSwitch(video) {
-      function checkTime() {
-        // Ensure duration is loaded and valid
-        if (video.duration && !isNaN(video.duration)) {
-          const switchTime = Math.max(video.duration - 2, 0); // 2s before end
-          if (video.currentTime >= switchTime) {
-            video.removeEventListener('timeupdate', checkTime);
-            switchVideo();
-          }
-        }
-      }
-      video.addEventListener('timeupdate', checkTime);
-    }
-
-    function switchVideo() {
-      currentVideo.classList.remove('active');
-      nextVideo.classList.add('active');
-      nextVideo.currentTime = 0; // Reset to start
-      nextVideo.play();
-
-      // Swap video roles
-      const temp = currentVideo;
-      currentVideo = nextVideo;
-      nextVideo = temp;
-
-      // Setup switch for the new current video
-      setupVideoSwitch(currentVideo);
-    }
-
-    // Initialize for the first video
-    setupVideoSwitch(video1);
-
-    // Fallback for autoplay restrictions
-    document.addEventListener('click', () => {
-      video1.play().catch(() => {});
-      video2.play().catch(() => {});
-    });
-  </script>
-
-  <!-- Weather Widget -->
-  <script>
-    !function(d,s,id){
-      var js,fjs=d.getElementsByTagName(s)[0];
-      if(!d.getElementById(id)){
-        js=d.createElement(s);
-        js.id=id;
-        js.src='https://weatherwidget.io/js/widget.min.js';
-        fjs.parentNode.insertBefore(js,fjs);
-      }
-    }(document,'script','weatherwidget-io-js');
-  </script>
-
 </body>
 </html>
