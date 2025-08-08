@@ -29,6 +29,8 @@
             border: 2px solid #333;
             display: block;
             background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 60%, #98D8C8 100%);
+            width: 800px;
+            height: 400px;
             max-width: calc(100vw - 44px);
             max-height: calc(100vh - 150px);
         }
@@ -40,17 +42,51 @@
                 height: 100vh;
                 display: flex;
                 flex-direction: column;
+                box-sizing: border-box;
             }
             canvas {
-                max-width: calc(100vw - 24px);
-                max-height: calc(100vh - 120px);
                 width: auto;
                 height: auto;
+                max-width: calc(100vw - 24px);
+                max-height: calc(100vh - 160px);
+            }
+            .controls {
+                margin-top: 15px;
+                padding-bottom: 10px;
+            }
+        }
+        @media (max-height: 500px) and (orientation: landscape) {
+            .game-container {
+                padding: 5px;
+            }
+            canvas {
+                width: auto;
+                height: calc(100vh - 120px);
+                max-height: 300px;
+            }
+            .info {
+                margin-bottom: 5px;
+            }
+            .info span {
+                padding: 3px 6px;
+                font-size: 12px;
+            }
+            button {
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+            .controls {
+                margin-top: 5px;
+                padding-bottom: 5px;
             }
         }
         .controls {
             margin-top: 10px;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
         }
         .info {
             display: flex;
@@ -76,7 +112,6 @@
         button {
             padding: 10px 20px;
             font-size: 16px;
-            margin: 0 5px;
             cursor: pointer;
             background: #4CAF50;
             color: white;
@@ -95,8 +130,8 @@
         }
         @media (max-width: 840px) {
             button {
-                padding: 15px 25px;
-                font-size: 18px;
+                padding: 12px 20px;
+                font-size: 16px;
             }
         }
         .game-over {
@@ -118,12 +153,16 @@
             justify-content: center;
             align-items: center;
             text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .portrait-content {
             background: white;
             padding: 40px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin: 20px;
+            max-width: 400px;
         }
         .portrait-content h2 {
             margin: 0 0 20px 0;
@@ -135,11 +174,8 @@
         }
         .rotate-icon {
             font-size: 48px;
-            animation: rotate 2s ease-in-out infinite;
-        }
-        @keyframes rotate {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
+            font-family: 'Courier New', monospace;
+            color: #667eea;
         }
         @media (max-width: 840px) and (orientation: portrait) {
             .portrait-warning {
@@ -171,7 +207,7 @@
         <div class="portrait-content">
             <h2>Please Rotate Your Device</h2>
             <p>This game requires landscape orientation to play.</p>
-            <div class="rotate-icon">⟲</div>
+            <div class="rotate-icon">↻</div>
         </div>
     </div>
 
