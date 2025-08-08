@@ -1,5 +1,5 @@
 <a href="https://rupakpoddaradmt.github.io/">
-  <img src="https://img.shields.io/badge/Hill%20Climb%20Racing-FFBF00?style=for-the-badge&logoColor=black" />
+  <img src="https://img.shields.io/badge/Hello%2C%20World%21-FFBF00?style=for-the-badge&logoColor=black" />
 </a>  
 <br>
 
