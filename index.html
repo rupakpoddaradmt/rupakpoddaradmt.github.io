@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hill Climb Racing</title>
     <style>
         body {
@@ -14,8 +14,6 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: Arial, sans-serif;
-            overflow: hidden;
-            touch-action: none;
         }
         .game-container {
             background: white;
@@ -31,8 +29,6 @@
             background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 60%, #98D8C8 100%);
             width: 800px;
             height: 400px;
-            max-width: calc(100vw - 44px);
-            max-height: calc(100vh - 150px);
         }
         @media (max-width: 840px) {
             .game-container {
@@ -83,44 +79,28 @@
         .controls {
             margin-top: 10px;
             text-align: center;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 5px;
         }
         .info {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
             font-weight: bold;
-            flex-wrap: wrap;
         }
         .info span {
             padding: 5px 10px;
             background: #f0f0f0;
             border-radius: 5px;
-            margin: 2px;
-        }
-        @media (max-width: 840px) {
-            .info {
-                font-size: 14px;
-            }
-            .info span {
-                padding: 4px 8px;
-            }
         }
         button {
             padding: 10px 20px;
             font-size: 16px;
+            margin: 0 5px;
             cursor: pointer;
             background: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             transition: background 0.3s;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            user-select: none;
         }
         button:hover {
             background: #45a049;
@@ -197,11 +177,11 @@
         </div>
         <div id="gameOver" class="game-over"></div>
     </div>
-    <div id="portraitWarning" class="portrait-warning">
-        <div class="portrait-content">
-            <h2>Please Rotate Your Device</h2>
-            <p>This game requires landscape orientation to play.</p>
-            <div class="rotate-icon">↻</div>
+    <div id="mobileWarning" class="mobile-warning">
+        <div class="mobile-content">
+            <h2>Desktop Only</h2>
+            <p>This game is only available for desktop computers.</p>
+            <p>Please visit on a desktop browser to play.</p>
         </div>
     </div>
 
@@ -583,13 +563,6 @@
         
         // Game loop
         function gameLoop() {
-            // Check if we're on mobile in portrait mode
-            if (window.innerWidth < window.innerHeight && 'ontouchstart' in window) {
-                // Don't update if in portrait on mobile
-                requestAnimationFrame(gameLoop);
-                return;
-            }
-            
             update();
             draw();
             requestAnimationFrame(gameLoop);
@@ -611,70 +584,18 @@
             keys[e.key] = false;
         });
         
-        // Prevent touch scrolling on canvas
-        canvas.addEventListener('touchstart', (e) => e.preventDefault());
-        canvas.addEventListener('touchmove', (e) => e.preventDefault());
-        
-        // Touch/Click controls
+        // Mouse controls for buttons
         document.getElementById('gasBtn').addEventListener('mousedown', () => keys['ArrowRight'] = true);
         document.getElementById('gasBtn').addEventListener('mouseup', () => keys['ArrowRight'] = false);
-        document.getElementById('gasBtn').addEventListener('touchstart', (e) => {e.preventDefault(); keys['ArrowRight'] = true;});
-        document.getElementById('gasBtn').addEventListener('touchend', (e) => {e.preventDefault(); keys['ArrowRight'] = false;});
-        document.getElementById('gasBtn').addEventListener('touchcancel', (e) => {e.preventDefault(); keys['ArrowRight'] = false;});
         
         document.getElementById('brakeBtn').addEventListener('mousedown', () => keys['ArrowLeft'] = true);
         document.getElementById('brakeBtn').addEventListener('mouseup', () => keys['ArrowLeft'] = false);
-        document.getElementById('brakeBtn').addEventListener('touchstart', (e) => {e.preventDefault(); keys['ArrowLeft'] = true;});
-        document.getElementById('brakeBtn').addEventListener('touchend', (e) => {e.preventDefault(); keys['ArrowLeft'] = false;});
-        document.getElementById('brakeBtn').addEventListener('touchcancel', (e) => {e.preventDefault(); keys['ArrowLeft'] = false;});
         
         document.getElementById('resetBtn').addEventListener('click', resetGame);
         
         // Initialize game
         generateTerrain();
-        
-        // Handle canvas sizing for mobile
-        function resizeCanvas() {
-            const container = document.querySelector('.game-container');
-            const containerWidth = container.clientWidth - 24;
-            const containerHeight = window.innerHeight - 150;
-            
-            // Maintain 2:1 aspect ratio
-            let displayWidth = containerWidth;
-            let displayHeight = displayWidth / 2;
-            
-            if (displayHeight > containerHeight) {
-                displayHeight = containerHeight;
-                displayWidth = displayHeight * 2;
-            }
-            
-            // Keep internal resolution the same
-            canvas.width = 800;
-            canvas.height = 400;
-            
-            // Only adjust display size via CSS on mobile landscape
-            if (window.innerWidth <= 840 && window.innerWidth > window.innerHeight) {
-                canvas.style.width = 'auto';
-                canvas.style.height = Math.min(250, containerHeight) + 'px';
-            }
-        }
-        
-        // Resize on orientation change
-        window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('orientationchange', resizeCanvas);
-        resizeCanvas();
-        
         gameLoop();
-        
-        // Handle orientation changes
-        window.addEventListener('orientationchange', () => {
-            if (window.orientation === 0 || window.orientation === 180) {
-                // Portrait mode - game is paused by CSS
-            } else {
-                // Landscape mode - game continues
-                setTimeout(resizeCanvas, 100);
-            }
-        });
     </script>
 </body>
 </html>
