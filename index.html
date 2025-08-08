@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hill Climb Racing</title>
     <style>
         body {
@@ -14,17 +14,39 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             font-family: Arial, sans-serif;
+            overflow: hidden;
+            touch-action: none;
         }
         .game-container {
             background: white;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 100vw;
+            max-height: 100vh;
         }
         canvas {
             border: 2px solid #333;
             display: block;
             background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 60%, #98D8C8 100%);
+            max-width: calc(100vw - 44px);
+            max-height: calc(100vh - 150px);
+        }
+        @media (max-width: 840px) {
+            .game-container {
+                padding: 10px;
+                border-radius: 0;
+                width: 100vw;
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+            canvas {
+                max-width: calc(100vw - 24px);
+                max-height: calc(100vh - 120px);
+                width: auto;
+                height: auto;
+            }
         }
         .controls {
             margin-top: 10px;
@@ -35,11 +57,21 @@
             justify-content: space-between;
             margin-bottom: 10px;
             font-weight: bold;
+            flex-wrap: wrap;
         }
         .info span {
             padding: 5px 10px;
             background: #f0f0f0;
             border-radius: 5px;
+            margin: 2px;
+        }
+        @media (max-width: 840px) {
+            .info {
+                font-size: 14px;
+            }
+            .info span {
+                padding: 4px 8px;
+            }
         }
         button {
             padding: 10px 20px;
@@ -51,12 +83,21 @@
             border: none;
             border-radius: 5px;
             transition: background 0.3s;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
         }
         button:hover {
             background: #45a049;
         }
         button:active {
             background: #3d8b40;
+        }
+        @media (max-width: 840px) {
+            button {
+                padding: 15px 25px;
+                font-size: 18px;
+            }
         }
         .game-over {
             text-align: center;
@@ -73,6 +114,7 @@
             <span>Distance: <span id="distance">0</span>m</span>
             <span>Fuel: <span id="fuel">100</span>%</span>
             <span>Score: <span id="score">0</span></span>
+            <span>Difficulty: <span id="difficulty">1.0</span></span>
         </div>
         <canvas id="gameCanvas" width="800" height="400"></canvas>
         <div class="controls">
@@ -127,9 +169,11 @@
             let y = 300;
             let slope = 0;
             
+            // Start with easier terrain
             for (let x = 0; x < 2000; x += 10) {
-                slope += (Math.random() - 0.5) * 0.3;
-                slope = Math.max(-2, Math.min(2, slope));
+                const difficulty = Math.min(3, 1 + (x / 2000));
+                slope += (Math.random() - 0.5) * 0.3 * difficulty;
+                slope = Math.max(-2 * difficulty, Math.min(2 * difficulty, slope));
                 y += slope * 10;
                 y = Math.max(100, Math.min(350, y));
                 terrain.push({x: x, y: y});
@@ -153,17 +197,23 @@
             let y = lastPoint.y;
             let slope = 0;
             
+            // Calculate difficulty based on distance
+            const difficulty = Math.min(3, 1 + (x / 2000)); // Increases from 1 to 3
+            const slopeVariation = 0.3 * difficulty;
+            const maxSlope = 2 * difficulty;
+            const heightVariation = 15 * difficulty;
+            
             // Generate 500 more units of terrain
             for (let i = 0; i < 50; i++) {
                 x += 10;
-                slope += (Math.random() - 0.5) * 0.3;
-                slope = Math.max(-2, Math.min(2, slope));
-                y += slope * 10;
-                y = Math.max(100, Math.min(350, y));
+                slope += (Math.random() - 0.5) * slopeVariation;
+                slope = Math.max(-maxSlope, Math.min(maxSlope, slope));
+                y += slope * heightVariation;
+                y = Math.max(50, Math.min(380, y));
                 terrain.push({x: x, y: y});
                 
-                // Add fuel cans randomly
-                if (Math.random() < 0.01) {
+                // More fuel cans as difficulty increases
+                if (Math.random() < 0.015 * difficulty) {
                     fuelCans.push({x: x, y: y - 30, collected: false});
                 }
                 
@@ -220,9 +270,10 @@
                 car.vy += Math.sin(car.angle) * enginePower;
                 fuel -= fuelConsumption;
             }
-            if (keys['ArrowLeft'] || keys['a']) {
+            if ((keys['ArrowLeft'] || keys['a']) && fuel > 0) {
                 car.vx -= Math.cos(car.angle) * brakePower;
                 car.vy -= Math.sin(car.angle) * brakePower;
+                fuel -= fuelConsumption * 0.5; // Brake uses less fuel than gas
             }
             
             // Apply physics
@@ -265,14 +316,23 @@
                 grounded = true;
             }
             
+            // Add slope-based acceleration when grounded
+            if (grounded) {
+                const currentSlope = getTerrainAngle(car.x);
+                const difficulty = Math.min(3, 1 + (car.x / 2000));
+                car.vx += Math.sin(currentSlope) * gravity * difficulty * 0.3;
+            }
+            
             // Adjust car angle based on terrain
             if (grounded) {
                 const targetAngle = getTerrainAngle(car.x);
                 car.angle += (targetAngle - car.angle) * 0.2;
             }
             
-            // Check for flip
-            if (Math.abs(car.angle) > Math.PI / 2) {
+            // Check for flip (more sensitive at higher difficulties)
+            const difficulty = Math.min(3, 1 + (car.x / 2000));
+            const flipThreshold = Math.PI / 2 - (difficulty - 1) * 0.1; // Gets stricter with difficulty
+            if (Math.abs(car.angle) > flipThreshold) {
                 gameOver("Vehicle Flipped!");
             }
             
@@ -309,6 +369,7 @@
             document.getElementById('distance').textContent = distance;
             document.getElementById('fuel').textContent = Math.floor(fuel);
             document.getElementById('score').textContent = score;
+            document.getElementById('difficulty').textContent = Math.min(3, 1 + Math.floor(car.x / 2000)).toFixed(1);
         }
         
         // Draw game
@@ -453,28 +514,43 @@
             if (e.key === 'r' || e.key === 'R') {
                 resetGame();
             }
+            // Prevent arrow key scrolling
+            if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
         });
         
         window.addEventListener('keyup', (e) => {
             keys[e.key] = false;
         });
         
+        // Prevent touch scrolling on canvas
+        canvas.addEventListener('touchstart', (e) => e.preventDefault());
+        canvas.addEventListener('touchmove', (e) => e.preventDefault());
+        
         // Touch/Click controls
         document.getElementById('gasBtn').addEventListener('mousedown', () => keys['ArrowRight'] = true);
         document.getElementById('gasBtn').addEventListener('mouseup', () => keys['ArrowRight'] = false);
         document.getElementById('gasBtn').addEventListener('touchstart', (e) => {e.preventDefault(); keys['ArrowRight'] = true;});
         document.getElementById('gasBtn').addEventListener('touchend', (e) => {e.preventDefault(); keys['ArrowRight'] = false;});
+        document.getElementById('gasBtn').addEventListener('touchcancel', (e) => {e.preventDefault(); keys['ArrowRight'] = false;});
         
         document.getElementById('brakeBtn').addEventListener('mousedown', () => keys['ArrowLeft'] = true);
         document.getElementById('brakeBtn').addEventListener('mouseup', () => keys['ArrowLeft'] = false);
         document.getElementById('brakeBtn').addEventListener('touchstart', (e) => {e.preventDefault(); keys['ArrowLeft'] = true;});
         document.getElementById('brakeBtn').addEventListener('touchend', (e) => {e.preventDefault(); keys['ArrowLeft'] = false;});
+        document.getElementById('brakeBtn').addEventListener('touchcancel', (e) => {e.preventDefault(); keys['ArrowLeft'] = false;});
         
         document.getElementById('resetBtn').addEventListener('click', resetGame);
         
         // Initialize game
         generateTerrain();
         gameLoop();
+        
+        // Suggest landscape mode on mobile
+        if (window.innerWidth < window.innerHeight && 'ontouchstart' in window) {
+            alert('For the best experience, please rotate your device to landscape mode!');
+        }
     </script>
 </body>
 </html>
