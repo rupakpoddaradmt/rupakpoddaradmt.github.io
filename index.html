@@ -128,12 +128,6 @@
         button:active {
             background: #3d8b40;
         }
-        @media (max-width: 840px) {
-            button {
-                padding: 12px 20px;
-                font-size: 16px;
-            }
-        }
         .game-over {
             text-align: center;
             margin-top: 10px;
@@ -638,6 +632,38 @@
         
         // Initialize game
         generateTerrain();
+        
+        // Handle canvas sizing for mobile
+        function resizeCanvas() {
+            const container = document.querySelector('.game-container');
+            const containerWidth = container.clientWidth - 24;
+            const containerHeight = window.innerHeight - 150;
+            
+            // Maintain 2:1 aspect ratio
+            let displayWidth = containerWidth;
+            let displayHeight = displayWidth / 2;
+            
+            if (displayHeight > containerHeight) {
+                displayHeight = containerHeight;
+                displayWidth = displayHeight * 2;
+            }
+            
+            // Keep internal resolution the same
+            canvas.width = 800;
+            canvas.height = 400;
+            
+            // Only adjust display size via CSS on mobile landscape
+            if (window.innerWidth <= 840 && window.innerWidth > window.innerHeight) {
+                canvas.style.width = 'auto';
+                canvas.style.height = Math.min(250, containerHeight) + 'px';
+            }
+        }
+        
+        // Resize on orientation change
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
+        resizeCanvas();
+        
         gameLoop();
         
         // Handle orientation changes
@@ -646,6 +672,7 @@
                 // Portrait mode - game is paused by CSS
             } else {
                 // Landscape mode - game continues
+                setTimeout(resizeCanvas, 100);
             }
         });
     </script>
