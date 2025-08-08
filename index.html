@@ -106,6 +106,49 @@
             font-size: 20px;
             font-weight: bold;
         }
+        .portrait-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .portrait-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .portrait-content h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+        }
+        .portrait-content p {
+            margin: 0 0 20px 0;
+            color: #666;
+        }
+        .rotate-icon {
+            font-size: 48px;
+            animation: rotate 2s ease-in-out infinite;
+        }
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+        @media (max-width: 840px) and (orientation: portrait) {
+            .portrait-warning {
+                display: flex;
+            }
+            .game-container {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -123,6 +166,13 @@
             <button id="resetBtn">Reset (R)</button>
         </div>
         <div id="gameOver" class="game-over"></div>
+    </div>
+    <div id="portraitWarning" class="portrait-warning">
+        <div class="portrait-content">
+            <h2>Please Rotate Your Device</h2>
+            <p>This game requires landscape orientation to play.</p>
+            <div class="rotate-icon">⟲</div>
+        </div>
     </div>
 
     <script>
@@ -171,7 +221,7 @@
             
             // Start with easier terrain
             for (let x = 0; x < 2000; x += 10) {
-                const difficulty = Math.min(3, 1 + (x / 2000));
+                const difficulty = Math.min(5, 1 + (x / 5000));
                 slope += (Math.random() - 0.5) * 0.3 * difficulty;
                 slope = Math.max(-2 * difficulty, Math.min(2 * difficulty, slope));
                 y += slope * 10;
@@ -198,7 +248,7 @@
             let slope = 0;
             
             // Calculate difficulty based on distance
-            const difficulty = Math.min(3, 1 + (x / 2000)); // Increases from 1 to 3
+            const difficulty = Math.min(5, 1 + (x / 5000)); // Increases from 1 to 5 more slowly
             const slopeVariation = 0.3 * difficulty;
             const maxSlope = 2 * difficulty;
             const heightVariation = 15 * difficulty;
@@ -319,7 +369,7 @@
             // Add slope-based acceleration when grounded
             if (grounded) {
                 const currentSlope = getTerrainAngle(car.x);
-                const difficulty = Math.min(3, 1 + (car.x / 2000));
+                const difficulty = Math.min(5, 1 + (car.x / 5000));
                 car.vx += Math.sin(currentSlope) * gravity * difficulty * 0.3;
             }
             
@@ -330,8 +380,8 @@
             }
             
             // Check for flip (more sensitive at higher difficulties)
-            const difficulty = Math.min(3, 1 + (car.x / 2000));
-            const flipThreshold = Math.PI / 2 - (difficulty - 1) * 0.1; // Gets stricter with difficulty
+            const difficulty = Math.min(5, 1 + (car.x / 5000));
+            const flipThreshold = Math.PI / 2 - (difficulty - 1) * 0.08; // Gets stricter with difficulty
             if (Math.abs(car.angle) > flipThreshold) {
                 gameOver("Vehicle Flipped!");
             }
@@ -369,7 +419,7 @@
             document.getElementById('distance').textContent = distance;
             document.getElementById('fuel').textContent = Math.floor(fuel);
             document.getElementById('score').textContent = score;
-            document.getElementById('difficulty').textContent = Math.min(3, 1 + Math.floor(car.x / 2000)).toFixed(1);
+            document.getElementById('difficulty').textContent = Math.min(5, 1 + (car.x / 5000)).toFixed(1);
         }
         
         // Draw game
@@ -503,6 +553,13 @@
         
         // Game loop
         function gameLoop() {
+            // Check if we're on mobile in portrait mode
+            if (window.innerWidth < window.innerHeight && 'ontouchstart' in window) {
+                // Don't update if in portrait on mobile
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
             update();
             draw();
             requestAnimationFrame(gameLoop);
@@ -547,10 +604,14 @@
         generateTerrain();
         gameLoop();
         
-        // Suggest landscape mode on mobile
-        if (window.innerWidth < window.innerHeight && 'ontouchstart' in window) {
-            alert('For the best experience, please rotate your device to landscape mode!');
-        }
+        // Handle orientation changes
+        window.addEventListener('orientationchange', () => {
+            if (window.orientation === 0 || window.orientation === 180) {
+                // Portrait mode - game is paused by CSS
+            } else {
+                // Landscape mode - game continues
+            }
+        });
     </script>
 </body>
 </html>
