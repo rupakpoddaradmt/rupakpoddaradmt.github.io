@@ -1,0 +1,204 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TeamGantt Time Logger</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 40px auto; }
+    input, textarea, select { width: 100%; margin: 6px 0; padding: 8px; }
+    button { padding: 10px 14px; margin-top: 6px; }
+    .box { border: 1px solid #ddd; padding: 12px; margin-bottom: 16px; }
+    .row { margin-bottom: 12px; }
+    small { color: #666; }
+  </style>
+</head>
+
+<body>
+  <h2>TeamGantt Time Logger</h2>
+
+  <!-- TOKEN -->
+  <div class="box">
+    <h3>API Token</h3>
+    <input id="token" type="password" placeholder="Paste API token" />
+    <button onclick="saveToken()">Save Token</button>
+    <button onclick="clearToken()">Clear</button>
+  </div>
+
+  <!-- TASK SELECT -->
+  <div class="box">
+    <h3>Select Task</h3>
+    <select id="taskSelect"></select>
+
+    <small>Or add a task manually:</small>
+    <input id="taskName" placeholder="Task name" />
+    <input id="taskId" placeholder="Task ID" />
+    <button onclick="addTask()">Add Task</button>
+    <button onclick="syncTasks()">Sync Tasks (API)</button>
+  </div>
+
+  <!-- ENTRY -->
+  <div class="box">
+    <h3>Log Time</h3>
+    <textarea id="comment" placeholder="Comment"></textarea>
+    <input id="minutes" type="number" placeholder="Minutes" />
+    <button onclick="submitEntry()">Submit</button>
+  </div>
+
+  <pre id="status"></pre>
+
+<script>
+/* ---------------- STORAGE KEYS ---------------- */
+const TOKEN_KEY = "tg_token";
+const TASKS_KEY = "tg_tasks";
+
+/* ---------------- INIT ---------------- */
+const tokenInput = document.getElementById("token");
+const taskSelect = document.getElementById("taskSelect");
+const statusBox = document.getElementById("status");
+
+tokenInput.value = localStorage.getItem(TOKEN_KEY) || "";
+
+function loadTasks() {
+  return JSON.parse(localStorage.getItem(TASKS_KEY) || "[]");
+}
+
+function saveTasks(tasks) {
+  localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+  renderTasks();
+}
+
+/* ---------------- TOKEN ---------------- */
+function saveToken() {
+  localStorage.setItem(TOKEN_KEY, tokenInput.value);
+  statusBox.textContent = "Token saved.";
+}
+
+function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+  tokenInput.value = "";
+  statusBox.textContent = "Token cleared.";
+}
+
+/* ---------------- TASK UI ---------------- */
+function renderTasks() {
+  const tasks = loadTasks();
+
+  taskSelect.innerHTML = "";
+
+  tasks.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name + " (" + t.id + ")";
+    taskSelect.appendChild(opt);
+  });
+}
+
+function addTask() {
+  const name = document.getElementById("taskName").value.trim();
+  const id = document.getElementById("taskId").value.trim();
+
+  if (!name || !id) {
+    statusBox.textContent = "Task name and ID required.";
+    return;
+  }
+
+  const tasks = loadTasks();
+
+  tasks.push({ name, id });
+
+  saveTasks(tasks);
+
+  document.getElementById("taskName").value = "";
+  document.getElementById("taskId").value = "";
+
+  statusBox.textContent = "Task added.";
+}
+
+/* ---------------- OPTIONAL: SYNC FROM API ---------------- */
+/*
+  NOTE: You MUST adjust this endpoint based on TeamGantt API docs.
+*/
+async function syncTasks() {
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  if (!token) {
+    statusBox.textContent = "Missing token.";
+    return;
+  }
+
+  try {
+    // ⚠️ Placeholder endpoint — adjust to real TeamGantt API
+    const res = await fetch("https://api.teamgantt.com/v1/projects", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
+
+    const data = await res.json();
+
+    // ⚠️ You must adapt mapping based on real API response
+    // Expected: flatten tasks into [{id, name}]
+    const tasks = [];
+
+    if (Array.isArray(data)) {
+      data.forEach(project => {
+        (project.tasks || []).forEach(task => {
+          tasks.push({
+            id: task.id,
+            name: task.name
+          });
+        });
+      });
+    }
+
+    saveTasks(tasks);
+
+    statusBox.textContent = "Tasks synced.";
+  } catch (err) {
+    statusBox.textContent = "Sync error: " + err.message;
+  }
+}
+
+/* ---------------- SUBMIT ---------------- */
+async function submitEntry() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const taskId = taskSelect.value;
+  const comment = document.getElementById("comment").value;
+  const minutes = document.getElementById("minutes").value;
+
+  if (!token) {
+    statusBox.textContent = "Missing token.";
+    return;
+  }
+
+  const payload = {
+    comment,
+    minutes: Number(minutes),
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    // ⚠️ Adjust endpoint per TeamGantt API
+    const res = await fetch(`https://api.teamgantt.com/v1/tasks/${taskId}/comments`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    statusBox.textContent = JSON.stringify(data, null, 2);
+
+  } catch (err) {
+    statusBox.textContent = "Error: " + err.message;
+  }
+}
+
+/* ---------------- INIT UI ---------------- */
+renderTasks();
+</script>
+
+</body>
+</html>
