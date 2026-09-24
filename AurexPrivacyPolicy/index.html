@@ -1,55 +1,139 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurex Privacy Policy</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
-            line-height: 1.6;
-            color: #444;
-        }
-        h1, h2 {
-            color: #333;
-        }
-        p {
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-<body>
 
-    <h1>Aurex Privacy Policy</h1>
+<html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Aurex Privacy Policy</title> <style> body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; line-height: 1.6; color: #444; }
 
-    <p>Last Updated: 11 March 2025</p>
+    h1, h2 {
+        color: #333;
+    }
 
-    <h2>1. Information Collected:</h2>
+    p {
+        margin-bottom: 15px;
+    }
 
-    <p><strong>Minimal User Information:</strong> Aurex requires an email address for login. The name and email address are collected and stored for authentication purposes.</p>
+    a {
+        color: #0066cc;
+    }
+</style>
 
-    <h2>2. Data Usage:</h2>
+</head> <body>
 
-    <p><strong>Functionality:</strong> The email address is used exclusively to authenticate users by requesting the server to send a One Time Password (OTP) to the provided email.</p>
+<h1>Aurex Privacy Policy</h1>
 
-    <h2>3. Data Sharing:</h2>
+<p>Last Updated: 24 September 2026</p>
 
-    <p><strong>No Third-Party Sharing:</strong> Aurex does not share, sell, or distribute any collected information with third parties under any circumstances.</p>
+<h2>1. Information Collected</h2>
 
-    <h2>4. Data Security:</h2>
+<p>
+    <strong>Account Information:</strong>
+    Aurex collects and stores the information provided when you create an account.
+    This may include your email address, first name, and last name.
+</p>
 
-    <p><strong>Encryption and Secure Verification:</strong> All communication between the app and the server is encrypted using AES 256 encryption. During authentication, the app requests the server to send a One Time Password to the registered email address.</p>
+<p>
+    <strong>Account and Usage Information:</strong>
+    Aurex also maintains information associated with your account, including the
+    date and time your account was created, your most recent login, your most
+    recent use of the app, and the number of times you have used the app.
+</p>
 
-    <h2>5. Changes to This Privacy Policy:</h2>
+<p>
+    <strong>Authentication:</strong>
+    Aurex allows users to sign in using Apple, Google, or email.
+    When signing in with email, a one-time password (OTP) is sent to the
+    email address provided by the user. Authentication services are provided
+    through Clerk.
+</p>
 
-    <p><strong>Updates:</strong> The Privacy Policy may be updated when necessary. Any changes will be reflected in the "Last Updated" date at the top. Checking this policy periodically is recommended.</p>
+<h2>2. Data Usage</h2>
 
-    <h2>6. Contact:</h2>
+<p>
+    <strong>Authentication and Account Management:</strong>
+    Your email address, first name, and last name are used to create and
+    authenticate your Aurex account and to provide access to the app.
+</p>
 
-    <p>For any questions or concerns about this Privacy Policy, contact <a href="mailto:engineering@admtronics.com">engineering@admtronics.com</a></p>
+<p>
+    <strong>App Functionality:</strong>
+    Account and usage information, such as account creation time, last login,
+    last app usage, and usage count, is used to operate, maintain, and improve
+    the functionality of Aurex.
+</p>
 
-    <p>By using Aurex, you agree to the terms outlined in this Privacy Policy.</p>
+<h2>3. Data Sharing</h2>
 
-</body>
-</html>
+<p>
+    <strong>No Third-Party Sharing:</strong>
+    Aurex does not sell, share, or distribute your personal information to
+    third parties.
+</p>
+
+<p>
+    Aurex uses service providers, including Clerk for authentication,
+    Vercel for server-side application infrastructure, and Google Cloud
+    Firestore for data storage. These services process or store information
+    as necessary to provide Aurex's functionality and are not used by Aurex
+    to sell or distribute your personal information to third parties.
+</p>
+
+<h2>4. Data Security</h2>
+
+<p>
+    <strong>Secure Authentication:</strong>
+    Aurex uses Clerk to manage user authentication and sessions. Clerk uses
+    short-lived, cryptographically signed JSON Web Tokens (JWTs) to authenticate
+    requests to the application's backend. These tokens have expiration times
+    and are validated before authenticated requests are processed.
+</p>
+
+<p>
+    <strong>Controlled Data Access:</strong>
+    The Aurex mobile app does not directly connect to or access the Google Cloud
+    Firestore database. All requests to store or retrieve application data are
+    made through Aurex's server infrastructure hosted on Vercel. The server
+    authenticates each request and accesses data on a per-user basis, so
+    authenticated users can only access the data associated with their own account.
+</p>
+
+<p>
+    <strong>Limited Authentication Tokens:</strong>
+    The server receives a short-lived authentication token that is used to
+    authenticate the user's request. The token is validated before the server
+    processes requests to store or retrieve the user's data.
+</p>
+
+<p>
+    <strong>Secure Connections:</strong>
+    Communication between the Aurex app, the server, and Google Cloud Firestore
+    is protected using secure, encrypted connections. Data transmitted to and
+    from Firestore is protected using Transport Layer Security (TLS), and data
+    stored in Firestore is encrypted at rest.
+</p>
+
+<p>
+    While Aurex takes reasonable measures to protect your information, no method
+    of transmitting or storing information electronically can be guaranteed to
+    be completely secure.
+</p>
+
+<h2>5. Changes to This Privacy Policy</h2>
+
+<p>
+    <strong>Updates:</strong>
+    This Privacy Policy may be updated when necessary. Any changes will be
+    reflected in the "Last Updated" date at the top of this page. Checking
+    this policy periodically is recommended.
+</p>
+
+<h2>6. Contact</h2>
+
+<p>
+    For any questions or concerns about this Privacy Policy, contact
+    <a href="mailto:engineering@admtronics.com">engineering@admtronics.com</a>.
+</p>
+
+<p>
+    By using Aurex, you acknowledge the practices described in this
+    Privacy Policy.
+</p>
+
+</body> </html>
